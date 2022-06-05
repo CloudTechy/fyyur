@@ -66,8 +66,21 @@ def search_venues():
   # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  x = False
   search = request.form.get('search_term', '')
-  result = Venue.query.filter(Venue.name.ilike(f'%{search}%')).all()
+  venue_city_state = db.session.query(
+      Venue.city, Venue.state).group_by(Venue.city, Venue.state).all()
+
+  for item in venue_city_state:
+    city, state = item
+    x = re.search(f"^{city}.+{state}$", search)
+    if x:
+      break
+  if x:
+    result = Venue.query.filter(
+        Venue.city == city, Venue.state == state).all()
+  else:
+    result = Venue.query.filter(Venue.name.ilike(f'%{search}%')).all()
   marshallowSchemaInstance = VenueSchema()
   data_set = marshallowSchemaInstance.dump(result, many=True)
   data = []

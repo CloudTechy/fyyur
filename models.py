@@ -60,8 +60,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean(), default=True)
     seeking_description = db.Column(db.String())
-    available_from = db.Column(db.DateTime(timezone=True), nullable=True)
-    available_to = db.Column(db.DateTime(timezone=True), nullable=True)
+    available_dates = db.Column(ARRAY(db.DateTime(timezone=True)), nullable=True)
     shows = db.relationship('Show', back_populates="artist")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate

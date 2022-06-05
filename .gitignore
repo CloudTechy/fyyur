@@ -6,3 +6,5 @@ env
 .flaskenv
 .cache/
 .vscode
+*.pyc
+*.pyo

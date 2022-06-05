@@ -3,6 +3,7 @@
 #----------------------------------------------------------------------------#
 
 import json
+import re
 import sys
 from unicodedata import category
 import dateutil.parser
@@ -12,6 +13,7 @@ from flask_moment import Moment
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from sqlalchemy import false
 from forms import *
 from models import Venue, Artist, app, Show, db, func
 from resource.modelschema import VenueSchema, ArtistSchema, ShowSchema, VenueGroupSchema
@@ -171,8 +173,21 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+  x = False
   search = request.form.get('search_term', '')
-  result = Artist.query.filter(Artist.name.ilike(f'%{search}%')).all()
+  artist_city_state = db.session.query(
+      Artist.city, Artist.state).group_by(Artist.city, Artist.state).all()
+
+  for item in artist_city_state:
+    city, state = item 
+    x = re.search(f"^{city}.+{state}$", search)
+    if x : 
+      break
+  if x :
+    result = Artist.query.filter(Artist.city == city, Artist.state == state).all()
+  else:
+    result = Artist.query.filter(Artist.name.ilike(f'%{search}%')).all()
+
   marshallowSchemaInstance = ArtistSchema()
   data_set = marshallowSchemaInstance.dump(result, many=True)
   data = []
